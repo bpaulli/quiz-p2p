@@ -1,4 +1,7 @@
 
+/// <reference path="../typings/sequelize/sequelize.d.ts" />
+
+
 var models = require('../models/models.js')
 
 
@@ -16,9 +19,19 @@ exports.load = function(req, res, next, quizId) {
 
 
 exports.index = function (req, res) {
-  models.Quiz.findAll().then(function (quizes) {
-    res.render('quizes/index.ejs', { quizes: quizes});
-  }).catch(function (error) {next(error);});
+  var search = req.query.search;
+  if (search == undefined ) {
+      models.Quiz.findAll().then(function (quizes) {
+          res.render('quizes/index.ejs', { search: req.query.search, quizes: quizes});
+      }).catch(function (error) {next(error);});
+   } else {
+      search = search.replace(/\s+/g,'%');
+      search = '%' + search + '%';
+      console.log(search);
+      models.Quiz.findAll({where: ['pregunta like ?', search], order: 'pregunta'}).then(function (quizes) {
+          res.render('quizes/index.ejs', { search: req.query.search, quizes: quizes});
+      }).catch(function (error) {next(error);});     
+   }
 };
 
 exports.show = function (req, res) {
